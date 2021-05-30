@@ -2,8 +2,11 @@ package com.androiddevs.shoppinglisttestingyt.di
 
 import android.content.Context
 import androidx.room.Room
+import com.androiddevs.shoppinglisttestingyt.data.local.ShoppingDao
 import com.androiddevs.shoppinglisttestingyt.data.local.ShoppingItemDatabase
 import com.androiddevs.shoppinglisttestingyt.data.remote.PixabayAPI
+import com.androiddevs.shoppinglisttestingyt.repositories.DefaultShoppingRepository
+import com.androiddevs.shoppinglisttestingyt.repositories.ShoppingRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -17,6 +20,13 @@ import javax.inject.Singleton
 @Module
 @InstallIn(ApplicationComponent::class)
 object AppModule {
+
+    @Singleton
+    @Provides
+    fun provideDefaultShoppingRepository(
+        shoppingDao: ShoppingDao,
+        pixabayAPI: PixabayAPI
+    ) = DefaultShoppingRepository(shoppingDao, pixabayAPI) as ShoppingRepository
 
 
     @Singleton
