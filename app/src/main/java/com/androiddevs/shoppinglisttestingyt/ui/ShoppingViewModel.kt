@@ -12,6 +12,7 @@ import com.androiddevs.shoppinglisttestingyt.other.Event
 import com.androiddevs.shoppinglisttestingyt.other.Resource
 import com.androiddevs.shoppinglisttestingyt.repositories.ShoppingRepository
 import kotlinx.coroutines.launch
+import java.lang.Exception
 
 
 class ShoppingViewModel @ViewModelInject constructor(
@@ -42,10 +43,62 @@ class ShoppingViewModel @ViewModelInject constructor(
     }
 
     fun insertShoppingItem(name: String, amountString: String, priceString: String) {
+        if (name.isEmpty() || amountString.isEmpty() || priceString.isEmpty()) {
+            _insertShoppingItemStatus.postValue(
+                Event(
+                    (Resource.error(
+                        "The fields must not be empty",
+                        null
+                    ))
+                )
+            )
+            return
+        }
+        // 12 should be declared as constant in constants file(other package)
+        if (name.length > 12) {
+            _insertShoppingItemStatus.postValue(
+                Event(
+                    Resource.error(
+                        "name length should be less than 12 characters",
+                        null
+                    )
+                )
+            )
+            return
+        }
+        val amount = try {
+            amountString.toInt()
+        } catch (
+            e: Exception
+        ) {
+            _insertShoppingItemStatus.postValue(
+                Event(
+                    Resource.error(
+                        "Something went wrong, ${e.message.toString()}",
+                        null
+                    )
+                )
+            )
+            return
+        }
+
+        val shoppingItem =
+            ShoppingItem(name, amount, priceString.toFloat(), _currentImageUrl.value ?: "", 10)
+        insertShoppingItemIntoDb(shoppingItem)
+        setCurrentImageUrl("")
+        _insertShoppingItemStatus.postValue(Event(Resource.success(shoppingItem)))
 
     }
 
     fun searchForImage(imageQuery: String) {
+        if (imageQuery.isEmpty()) {
+            return
+        }
+        _images.value = Event(Resource.loading(data = null))
+        viewModelScope.launch {
+            val response = repository.searchImage(imageQuery)
+            _images.value = Event(response)
+        }
 
     }
 }
